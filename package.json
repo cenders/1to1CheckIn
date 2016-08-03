@@ -1,8 +1,8 @@
 {
-  "name": "1:1 Check In",
-  "version": "0.1",
+  "name": "1to1-check-in",
+  "version": "0.0.1",
   "description": "A check-in web application for 1:1 laptop distribution.",
-  "author": "Collin Ender <cenders01@gmail.com>",
+  "author": "Collin Enders <cenders01@gmail.com>",
   "repository": {
     "type": "git",
     "url": "https://github.com/cenders/1to1CheckIn"
