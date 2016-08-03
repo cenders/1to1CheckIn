@@ -1,0 +1,146 @@
+<!doctype html>
+<html>
+  <head>
+    <title>1:1 Check-In | Home</title>
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+    <!--<link rel="stylesheet" type="text/css" href="css/body.css">-->
+  </head>
+  <body>
+    <nav class="navbar navbar-inverse">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-2">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/">1:1 Check-In</a>
+        </div>
+        <div class="collapse navbar-collapse" id="navbar-collapse-2">
+          <ul class="nav navbar-nav">
+            <li class="active"><a href="">Entry<span class="sr-only">(current)</span></a></li>
+          </ul>
+          <ul class="nav navbar-nav">
+            <li><a href="/viewer">Viewer</a></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+    <div class="container">
+      <div class="col-lg-8 col-lg-offset-2">
+        <br>
+        <br>
+        <form action="" id="idForm">
+          <div class="form-group">
+            <div class="input-group">
+                <input class="form-control input-lg" id="StudentIDForm" autocomplete="false" placeholder="Student ID #" type="text" autofocus>
+                <span class="input-group-btn">
+                  <button class="btn btn-primary btn-lg">Submit</button>
+                </span>
+            </div>
+          </div>
+        </form>
+        <br>
+        <br>
+        <form class="form-horizontal" id="infoForm" hidden>
+          <fieldset>
+            <legend>Student Info</legend>
+            <div class="form-group">
+              <label class="col-lg-3 control-label">Student ID #</label>
+              <div class="col-lg-9">
+                <input id="idLabel" type="text" class="form-control" disabled="">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="col-lg-3 control-label">Name</label>
+              <div class="col-lg-9">
+                <input id="nameLabel" type="text" class="form-control" disabled="">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="col-lg-3 control-label">Grade</label>
+              <div class="col-lg-9">
+                <input id="gradeLabel" type="text" class="form-control" disabled="">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="col-lg-3 control-label">Are you in Open Campus?</label>
+              <div class="col-lg-9">
+                <div class="radio">
+                  <label>
+                    <input type="radio" name="openRad" id="openYes" value="true">
+                    Yes
+                  </label>
+                </div>
+                <div class="radio">
+                  <label>
+                    <input type="radio" name="openRad" id="openNo" value="false" checked="">
+                    No
+                  </label>
+                </div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="col-lg-3 control-label">Are you in Twilight?</label>
+              <div class="col-lg-9">
+                <div class="radio">
+                  <label>
+                    <input type="radio" name="twiRad" id="twiYes" value="true">
+                    Yes
+                  </label>
+                </div>
+                <div class="radio">
+                  <label>
+                    <input type="radio" name="twiRad" id="twiNo" value="false" checked="">
+                    No
+                  </label>
+                </div>
+              </div>
+            </div>
+            <div class="form-group">
+              <div class="col-lg-12">
+                <button type="submit" class="btn btn-primary pull-right">Submit</button>
+              </div>
+            </div>
+          </fieldset>
+        </form>
+      </div>
+    </div>
+    <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
+    <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <script>
+      //Student ID form handler
+      var socket = io();
+      $('#idForm').submit(function(){
+        socket.emit('studentID', $('#StudentIDForm').val());
+        return false;
+      });
+
+      //Inserts data into form
+      socket.on('student', function(obj){
+        $('#idForm').hide();
+        $('#infoForm').show();
+        console.log(obj.id);
+        $('#idLabel').prop('value', obj.id);
+        $('#nameLabel').prop('value', obj.name);
+        $('#gradeLabel').prop('value', obj.grade);
+      });
+
+      //Submits data to viewer
+      $('#infoForm').submit(function(){
+        var obj = {
+          id: $('#idLabel').val(),
+          name: $('#nameLabel').val(),
+          grade: $('#gradeLabel')val(),
+          openCampus: $('input[name=openRad]:checked').val(),
+          twilight: $('input[name=twiRad]:checked').val()
+        };
+        console.log(obj.openCampus);
+        console.log(obj.twilight);
+        socket.emit('studentInfo', $(obj))
+      })
+    </script>
+  </body>
+</html>

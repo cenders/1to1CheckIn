@@ -1,0 +1,15 @@
+{
+  "name": "1:1 Check In",
+  "version": "0.1",
+  "description": "A check-in web application for 1:1 laptop distribution.",
+  "author": "Collin Ender <cenders01@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cenders/1to1CheckIn"
+  },
+  "dependencies": {
+    "socket.io": "1.4.8",
+    "mongoose": "4.5.8",
+    "express": "4.14.0"
+  }
+}
