@@ -13,6 +13,9 @@ app.get('/', function(req, res){
 app.get('/viewer', function(req, res){
   res.sendFile(__dirname + '/static/viewer.html');
 });
+app.get('/active', function(req, res){
+  res.sendFile(__dirname + '/static/active.html');
+});
 
 var db = mongoose.connection;
 db.on('error', console.error);
