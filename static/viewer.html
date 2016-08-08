@@ -31,9 +31,16 @@
         <br>
         <div class="row">
           <div class="col-lg-2">
-            <!--<h5 class="pull-left">Orders</h5>-->
+            <div class="btn-group">
+              <div class="btn" id="prevButton">
+                Prev
+              </div>
+              <div class="btn" id="nextButton">
+                Next
+              </div>
+            </div>
           </div>
-          <div class="col-lg-2 col-lg-offset-10">
+          <div class="col-lg-2 col-lg-offset-8">
             <div class="checkbox pull-right">
               <label>
                 <input type="checkbox"> Show completed
@@ -41,7 +48,7 @@
             </div>
           </div>
         </div>
-        <table class="table table-striped table-hover ">
+        <table id="studentList" class="table table-striped table-hover ">
           <thead>
             <tr>
               <th>Student ID</th>
@@ -53,30 +60,6 @@
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td>127458</td>
-              <td>Collin Enders</td>
-              <td>12</td>
-              <td>hsubt107100</td>
-              <td>Yes</td>
-              <td><button class="btn btn-primary btn-xs text-center">X</button></td>
-            </tr>
-            <tr>
-              <td>127458</td>
-              <td>Collin Enders</td>
-              <td>12</td>
-              <td>hsubt107100</td>
-              <td>Yes</td>
-              <td><button class="btn btn-primary btn-xs text-center">X</button></td>
-            </tr>
-            <tr>
-              <td>127458</td>
-              <td>Collin Enders</td>
-              <td>12</td>
-              <td>hsubt107100</td>
-              <td>Yes</td>
-              <td><button class="btn btn-primary btn-xs text-center">X</button></td>
-            </tr>
           </tbody>
         </table>
     </div>
@@ -84,7 +67,53 @@
     <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
     <script>
+      //Student ID form handler
+      var socket = io();
 
+      var skip = 0;
+
+      function previousPage() {
+        if(skip >= 10) {
+          skip -= 10;
+          socket.emit('studentList', {limit: 10, skip: skip});
+        }
+      }
+
+      function nextPage() {
+        if(skip <= 990) {
+          skip += 10;
+          socket.emit('studentList', {limit: 10, skip: skip});
+        }
+      }
+
+      $('#idForm').submit(function(){
+        socket.emit('studentID', $('#StudentIDForm').val());
+        return false;
+      });
+
+
+      socket.on('list', function(obj) {
+        console.log('showing list');
+
+        var table = $('#studentList tbody').html('');
+
+        for(var i in obj) {
+          var row = '<tr>' +
+            '<td>' + obj[i].id + '</td>' +
+            '<td>' + obj[i].name + '</td>' +
+            '<td>' + obj[i].grade + '</td>' +
+            '<td>' + obj[i].asset + '</td>' +
+            '<td>' + obj[i].openCampus + '</td>' +
+            '<td><button class="btn btn-primary btn-xs text-center">X</button></td>' +
+            '</tr>';
+
+          table.append(row);
+        }
+      });
+
+      socket.emit('studentList', {limit: 10, skip: 0});
+      $('#prevButton').click(previousPage);
+      $('#nextButton').click(nextPage);
 
     </script>
   </body>

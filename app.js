@@ -52,6 +52,29 @@ io.on('connection', function(socket){
     });
   });
 
+  //Requesting student list
+  socket.on('studentList', function(listObj) {
+    Student.find().limit(listObj.limit).skip(listObj.skip).exec(function(err, objs) {
+      if(err) return console.error(err);
+
+      var students = [];
+
+      for(var i in objs) {
+        students[i] = {
+          id: objs[i].id,
+          name: objs[i].name,
+          grade: objs[i].grade,
+          asset: objs[i].asset,
+          openCampus: objs[i].openCampus
+        }
+      }
+
+      io.emit('list', students);
+
+      console.log('Sending student list');
+    });
+  });
+
   // Student submits second form with Open Campus option
   socket.on('studentInfo', function(studentObj){
     Student.findOneAndUpdate({id: studentObj.id}, {openCampus: studentObj.openCampus}, function(err, obj){
