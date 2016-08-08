@@ -66,31 +66,24 @@
     <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
     <script>
-    var numOnPage = 100;
 
-    var pagination = {
-      skip: 0,
-      limit: numOnPage,
-      sort: 'asset',
-      order: '',
-      showIncomplete: true
-    }
 
     $(document).ready(function() {
       var socket = io();
 
-
-
-
-
-      var max = 0;
-
+      var max = 0, numOnPage = 100, pagination = {
+        skip: 0,
+        limit: numOnPage,
+        sort: 'asset',
+        order: '',
+        showIncomplete: true
+      }
 
       function updateList() {
         socket.emit('studentList', pagination);
       }
 
-      function previousPage(event) {
+      function previousPage() {
         if(pagination.skip >= numOnPage) {
           pagination.skip -= numOnPage;
           updateList();
@@ -163,6 +156,11 @@
         updateList();
       });
 
+      $('#col-id').click(sort);
+      $('#col-name').click(sort);
+      $('#col-grade').click(sort);
+      $('#col-asset').click(sort);
+      $('#col-openCampus').click(sort);
       $('#prevButton').click(previousPage);
       $('#nextButton').click(nextPage);
       $('#showCompletedButton').change(function() {
@@ -170,11 +168,6 @@
         pagination.skip = 0;
         updateList();
       });
-      $('#col-id').click(sort);
-      $('#col-name').click(sort);
-      $('#col-grade').click(sort);
-      $('#col-asset').click(sort);
-      $('#col-openCampus').click(sort);
 
       updateList();
     });

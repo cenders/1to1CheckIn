@@ -98,38 +98,40 @@
     <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
     <script>
-      //Student ID form handler
-      var socket = io();
-      $('#idForm').submit(function(){
-        socket.emit('studentID', $('#StudentIDForm').val());
-        return false;
+      $(document).ready(function() {
+        //Student ID form handler
+        var socket = io();
+        $('#idForm').submit(function(){
+          socket.emit('studentID', $('#StudentIDForm').val());
+          return false;
+        });
+
+        //Inserts data into form
+        socket.on('student', function(obj){
+          $('#idForm').hide();
+          $('#infoForm').show();
+          $('#idLabel').prop('value', obj.id);
+          $('#nameLabel').prop('value', obj.name);
+          $('#gradeLabel').prop('value', obj.grade);
+          $('#assetLabel').prop('value', obj.asset);
+
+          if(obj.openCampus) {
+            $('#openYes').prop('checked', true);
+            $('#openNo').prop('checked', false);
+          }
+        });
+
+        //Submits data to viewer and updates Open Campus record
+        $('#infoForm').submit(function(){
+          var obj = {
+            id: $('#idLabel').val(),
+            name: $('#nameLabel').val(),
+            grade: $('#gradeLabel').val(),
+            openCampus: $('input[name=openRad]:checked').val(),
+          };
+          socket.emit('studentInfo', obj);
+        });
       });
-
-      //Inserts data into form
-      socket.on('student', function(obj){
-        $('#idForm').hide();
-        $('#infoForm').show();
-        $('#idLabel').prop('value', obj.id);
-        $('#nameLabel').prop('value', obj.name);
-        $('#gradeLabel').prop('value', obj.grade);
-        $('#assetLabel').prop('value', obj.asset);
-
-        if(obj.openCampus) {
-          $('#openYes').prop('checked', true);
-          $('#openNo').prop('checked', false);
-        }
-      });
-
-      //Submits data to viewer and updates Open Campus record
-      $('#infoForm').submit(function(){
-        var obj = {
-          id: $('#idLabel').val(),
-          name: $('#nameLabel').val(),
-          grade: $('#gradeLabel').val(),
-          openCampus: $('input[name=openRad]:checked').val(),
-        };
-        socket.emit('studentInfo', obj);
-      })
     </script>
   </body>
 </html>
