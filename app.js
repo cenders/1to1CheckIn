@@ -63,11 +63,10 @@ io.on('connection', function(socket){
     Student.find(q).count().exec(function(err, count) {
       if(err) return console.error(err);
 
-      Student.find(q).limit(listObj.limit).skip(listObj.skip).exec(function(err, objs) {
+      Student.find(q).sort(listObj.order + listObj.sort).limit(listObj.limit).skip(listObj.skip).exec(function(err, objs) {
         if(err) return console.error(err);
 
         var students = [];
-
         for(var i in objs) {
           students[i] = {
             id: objs[i].id,
@@ -78,7 +77,6 @@ io.on('connection', function(socket){
             completed: objs[i].completed
           }
         }
-
         io.emit('list', {count: count, students: students});
       });
     });

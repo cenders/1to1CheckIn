@@ -57,13 +57,13 @@
 
           var checked = 'checked';
           var row = '<tr id="activeRow-' + obj.id + '">' +
-            '<td>' + obj.id + '</td>' +
-            '<td>' + obj.name + '</td>' +
-            '<td>' + obj.grade + '</td>' +
-            '<td>' + obj.asset + '</td>' +
-            '<td><input type="checkbox" ' + checked + '></td>' +
-            '<td>' +
-              '<button data-sid="' + obj.id + '" class="btn btn-primary btn-xs text-center buttonActiveRemove">X</button>' +
+            '<td class="col-xs-1">' + obj.id + '</td>' +
+            '<td class="col-xs-5">' + obj.name + '</td>' +
+            '<td class="col-xs-1">' + obj.grade + '</td>' +
+            '<td class="col-xs-2">' + obj.asset + '</td>' +
+            '<td class="col-xs-2"><input type="checkbox" ' + checked + '></td>' +
+            '<td class="col-xs-1">' +
+              '<button data-sid="' + obj.id + '" class="btn btn-primary btn-xs text-center buttonActiveRemove pull-right">X</button>' +
             '</td>' +
           '</tr>';
 

@@ -3,6 +3,7 @@
   <head>
     <title>1:1 Check-In | Viewer</title>
     <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="css/custom.css">
   </head>
   <body>
     <nav class="navbar navbar-inverse">
@@ -30,7 +31,7 @@
         <div class="row">
           <div class="col-lg-2">
             <div class="btn-group">
-              <div class="btn" id="prevButton">
+              <div class="btn" id="prevButton" disabled>
                 Prev
               </div>
               <div class="btn" id="nextButton">
@@ -48,12 +49,12 @@
         </div>
         <table id="studentList" class="table table-striped table-hover ">
           <thead>
-            <tr>
-              <th>Student ID</th>
-              <th>Name</th>
-              <th>Grade</th>
-              <th>Laptop</th>
-              <th>Open Campus</th>
+            <tr class="clickable-headers">
+              <th id="col-id" data-by="id">Student ID</th>
+              <th id="col-name" data-by="name">Name</th>
+              <th id="col-grade" data-by="grade">Grade</th>
+              <th id="col-asset" data-by="asset">Laptop</th>
+              <th id="col-openCampus" data-by="openCampus">Open Campus</th>
               <th></th>
             </tr>
           </thead>
@@ -65,17 +66,22 @@
     <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
     <script>
+    var numOnPage = 100;
+
+    var pagination = {
+      skip: 0,
+      limit: numOnPage,
+      sort: 'asset',
+      order: '',
+      showIncomplete: true
+    }
 
     $(document).ready(function() {
       var socket = io();
 
-      var numOnPage = 10;
 
-      var pagination = {
-        skip: 0,
-        limit: numOnPage,
-        showIncomplete: true
-      }
+
+
 
       var max = 0;
 
@@ -84,7 +90,7 @@
         socket.emit('studentList', pagination);
       }
 
-      function previousPage() {
+      function previousPage(event) {
         if(pagination.skip >= numOnPage) {
           pagination.skip -= numOnPage;
           updateList();
@@ -96,6 +102,17 @@
           pagination.skip += numOnPage;
           updateList();
         }
+      }
+
+      function sort(event) {
+        var by = $(event.target).data('by');
+        if(pagination.sort == by) {
+          pagination.order = pagination.order != '-' ? '-' : '';
+        }
+        else {
+          pagination.sort = by;
+        }
+        updateList();
       }
 
       //Student ID form handler
@@ -110,16 +127,25 @@
 
         var table = $('#studentList tbody').html('');
 
-        for(var i in obj.students) {
+        if(pagination.skip == 0)
+          $('#prevButton').attr('disabled', true);
+        else
+          $('#prevButton').attr('disabled', false);
 
-          var checked = !obj.students[i].completed ? '<button data-sid="' + obj.students[i].id + '" class="btn btn-primary btn-xs text-center button-complete">X</button>':'';
+        if(pagination.skip + numOnPage >= max )
+          $('#nextButton').attr('disabled', true);
+        else
+          $('#nextButton').attr('disabled', false);
+
+        for(var i in obj.students) {
+          var checked = !obj.students[i].completed ? '<button data-sid="' + obj.students[i].id + '" class="btn btn-primary btn-xs text-center button-complete pull-right">X</button>':'';
           var row = '<tr>' +
-            '<td>' + obj.students[i].id + '</td>' +
-            '<td>' + obj.students[i].name + '</td>' +
-            '<td>' + obj.students[i].grade + '</td>' +
-            '<td>' + obj.students[i].asset + '</td>' +
-            '<td>' + obj.students[i].openCampus + '</td>' +
-            '<td>' + checked + '</td>' +
+            '<td class="col-xs-1">' + obj.students[i].id + '</td>' +
+            '<td class="col-xs-5">' + obj.students[i].name + '</td>' +
+            '<td class="col-xs-1">' + obj.students[i].grade + '</td>' +
+            '<td class="col-xs-2">' + obj.students[i].asset + '</td>' +
+            '<td class="col-xs-2">' + obj.students[i].openCampus + '</td>' +
+            '<td class="col-xs-1">' + checked + '</td>' +
             '</tr>';
 
           table.append(row);
@@ -144,6 +170,11 @@
         pagination.skip = 0;
         updateList();
       });
+      $('#col-id').click(sort);
+      $('#col-name').click(sort);
+      $('#col-grade').click(sort);
+      $('#col-asset').click(sort);
+      $('#col-openCampus').click(sort);
 
       updateList();
     });
