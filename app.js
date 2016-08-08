@@ -20,7 +20,7 @@ db.once('open', function(){
   console.log('MongoDB connection open');
 });
 
-mongoose.connect('mongodb://localhost:27017/test');
+mongoose.connect('mongodb://localhost:27017/distribution/dist');
 
 var schema = new mongoose.Schema({
   id: Number,
@@ -29,20 +29,10 @@ var schema = new mongoose.Schema({
   asset: Number,
   openCampus: Boolean,
   completed: {type: Boolean, default: false}
-});
+},
+{collection: 'dist'});
 
 var Student = mongoose.model('Student', schema);
-
-/* Create new user
-var collin = new Student({
-  id: 127458,
-  name: 'Collin Enders',
-  grade: '15',
-  asset: 107000,
-  openCampus: true
-});
-collin.save(function(err, collin){});
-*/
 
 io.on('connection', function(socket){
   // Student submits initial student ID form
