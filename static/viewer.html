@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
   <head>
-    <title>1:1 Check-In | Home</title>
+    <title>1:1 Check-In | Viewer</title>
     <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
   </head>
   <body>
@@ -27,8 +27,22 @@
       </div>
     </nav>
     <div class="container">
-        <br>
-        <br>
+        <h5>Active</h5>
+        <table id="activeList" class="table table-striped table-hover">
+          <thead>
+            <tr>
+              <th>Student ID</th>
+              <th>Name</th>
+              <th>Grade</th>
+              <th>Laptop</th>
+              <th>Open Campus</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+          </tbody>
+        </table>
+
         <div class="row">
           <div class="col-lg-2">
             <div class="btn-group">
@@ -43,7 +57,7 @@
           <div class="col-lg-2 col-lg-offset-8">
             <div class="checkbox pull-right">
               <label>
-                <input type="checkbox"> Show completed
+                <input id="showCompletedButton" type="checkbox"> Show completed
               </label>
             </div>
           </div>
@@ -67,25 +81,40 @@
     <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
     <script>
-      //Student ID form handler
+
+    $(document).ready(function() {
       var socket = io();
 
-      var skip = 0;
+      var numOnPage = 10;
+
+      var pagination = {
+        skip: 0,
+        limit: numOnPage,
+        showIncomplete: true
+      }
+
+      var max = 0;
+
+
+      function updateList() {
+        socket.emit('studentList', pagination);
+      }
 
       function previousPage() {
-        if(skip >= 10) {
-          skip -= 10;
-          socket.emit('studentList', {limit: 10, skip: skip});
+        if(pagination.skip >= numOnPage) {
+          pagination.skip -= numOnPage;
+          updateList();
         }
       }
 
       function nextPage() {
-        if(skip <= 990) {
-          skip += 10;
-          socket.emit('studentList', {limit: 10, skip: skip});
+        if(pagination.skip <= max - numOnPage) {
+          pagination.skip += numOnPage;
+          updateList();
         }
       }
 
+      //Student ID form handler
       $('#idForm').submit(function(){
         socket.emit('studentID', $('#StudentIDForm').val());
         return false;
@@ -93,28 +122,72 @@
 
 
       socket.on('list', function(obj) {
-        console.log('showing list');
+        max = obj.count;
 
         var table = $('#studentList tbody').html('');
 
-        for(var i in obj) {
+        for(var i in obj.students) {
+
+          var checked = !obj.students[i].completed ? '<button data-sid="' + obj.students[i].id + '" class="btn btn-primary btn-xs text-center button-complete">X</button>':'';
           var row = '<tr>' +
-            '<td>' + obj[i].id + '</td>' +
-            '<td>' + obj[i].name + '</td>' +
-            '<td>' + obj[i].grade + '</td>' +
-            '<td>' + obj[i].asset + '</td>' +
-            '<td>' + obj[i].openCampus + '</td>' +
-            '<td><button class="btn btn-primary btn-xs text-center">X</button></td>' +
+            '<td>' + obj.students[i].id + '</td>' +
+            '<td>' + obj.students[i].name + '</td>' +
+            '<td>' + obj.students[i].grade + '</td>' +
+            '<td>' + obj.students[i].asset + '</td>' +
+            '<td>' + obj.students[i].openCampus + '</td>' +
+            '<td>' + checked + '</td>' +
             '</tr>';
 
           table.append(row);
         }
+
+        $('button.button-complete').click(function() {
+          console.log('sending completed update');
+          var date = new Date();
+          socket.emit('studentComplete', {id: $(this).data('sid'), time: date});
+          $(this).remove();
+        });
       });
 
-      socket.emit('studentList', {limit: 10, skip: 0});
+      socket.on('info', function(obj){
+        console.log('info being logged', obj);
+        var table = $('#activeList tbody');
+
+        if(!obj.completed) {
+          var row = '<tr id="activeRow-' + obj.id + '">' +
+            '<td>' + obj.id + '</td>' +
+            '<td>' + obj.name + '</td>' +
+            '<td>' + obj.grade + '</td>' +
+            '<td>' + obj.asset + '</td>' +
+            '<td>' + obj.openCampus + '</td>' +
+            '<td>' +
+              '<button data-sid="' + obj.id + '" class="btn btn-primary btn-xs text-center buttonActiveRemove">X</button>' +
+            '</td>' +
+          '</tr>';
+
+          table.prepend(row);
+
+          $('button.buttonActiveRemove').click(function() {
+            $('#activeRow-' + $(this).data('sid')).remove();
+            socket.emit('studentComplete', {id: $(this).data('sid'), time: date});
+          });
+        }
+      });
+
+      socket.on('studentCompleted', function() {
+        updateList();
+      });
+
       $('#prevButton').click(previousPage);
       $('#nextButton').click(nextPage);
+      $('#showCompletedButton').change(function() {
+        pagination.showIncomplete = !$(this).prop('checked');
+        pagination.skip = 0;
+        updateList();
+      });
 
+      updateList();
+    });
     </script>
   </body>
 </html>
