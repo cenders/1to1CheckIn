@@ -43,7 +43,8 @@ io.on('connection', function(socket){
         id: obj.id,
         name: obj.name,
         grade: obj.grade,
-        asset: obj.asset
+        asset: obj.asset,
+        openCampus: obj.openCampus
       };
       io.emit('student', student);
       console.log('Received request for SID# '+ studentID);
@@ -56,12 +57,8 @@ io.on('connection', function(socket){
       if(err) return console.error(err);
 
       // Display all user data
-      console.log(studentObj.id);
-      console.log(studentObj.name);
-      console.log(studentObj.grade);
-      console.log(studentObj.asset);
-      console.log(studentObj.openCampus);
-      console.log(studentObj.completed);
+
+      console.log(studentObj);
     });
 
     var info = {

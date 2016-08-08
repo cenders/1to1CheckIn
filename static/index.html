@@ -114,6 +114,11 @@
         $('#nameLabel').prop('value', obj.name);
         $('#gradeLabel').prop('value', obj.grade);
         $('#assetLabel').prop('value', obj.asset);
+
+        if(obj.openCampus) {
+          $('#openYes').prop('checked', true);
+          $('#openNo').prop('checked', false);
+        }
       });
 
       //Submits data to viewer and updates Open Campus record
@@ -124,7 +129,7 @@
           grade: $('#gradeLabel').val(),
           openCampus: $('input[name=openRad]:checked').val(),
         };
-        socket.emit('studentInfo', obj)
+        socket.emit('studentInfo', obj);
       })
     </script>
   </body>
