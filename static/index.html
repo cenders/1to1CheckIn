@@ -64,6 +64,12 @@
               </div>
             </div>
             <div class="form-group">
+              <label class="col-lg-3 control-label">Laptop #</label>
+              <div class="col-lg-9">
+                <input id="assetLabel" type="text" class="form-control" disabled="">
+              </div>
+            </div>
+            <div class="form-group">
               <label class="col-lg-3 control-label">Are you in Open Campus?</label>
               <div class="col-lg-9">
                 <div class="radio">
@@ -75,23 +81,6 @@
                 <div class="radio">
                   <label>
                     <input type="radio" name="openRad" id="openNo" value="false" checked="">
-                    No
-                  </label>
-                </div>
-              </div>
-            </div>
-            <div class="form-group">
-              <label class="col-lg-3 control-label">Are you in Twilight?</label>
-              <div class="col-lg-9">
-                <div class="radio">
-                  <label>
-                    <input type="radio" name="twiRad" id="twiYes" value="true">
-                    Yes
-                  </label>
-                </div>
-                <div class="radio">
-                  <label>
-                    <input type="radio" name="twiRad" id="twiNo" value="false" checked="">
                     No
                   </label>
                 </div>
@@ -121,24 +110,21 @@
       socket.on('student', function(obj){
         $('#idForm').hide();
         $('#infoForm').show();
-        console.log(obj.id);
         $('#idLabel').prop('value', obj.id);
         $('#nameLabel').prop('value', obj.name);
         $('#gradeLabel').prop('value', obj.grade);
+        $('#assetLabel').prop('value', obj.asset);
       });
 
-      //Submits data to viewer
+      //Submits data to viewer and updates Open Campus record
       $('#infoForm').submit(function(){
         var obj = {
           id: $('#idLabel').val(),
           name: $('#nameLabel').val(),
           grade: $('#gradeLabel').val(),
           openCampus: $('input[name=openRad]:checked').val(),
-          twilight: $('input[name=twiRad]:checked').val()
         };
-        console.log(obj.openCampus);
-        console.log(obj.twilight);
-        socket.emit('studentInfo', $(obj))
+        socket.emit('studentInfo', obj)
       })
     </script>
   </body>
