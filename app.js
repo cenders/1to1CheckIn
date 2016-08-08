@@ -109,7 +109,15 @@ io.on('connection', function(socket){
 
       console.log('Student "' + completeObj.id + '" completed');
 
-      io.emit('studentCompleted' , info);
+      var info = {
+        id: obj.id,
+        name: obj.name,
+        grade: obj.grade,
+        asset: obj.asset,
+        openCampus: obj.openCampus,
+        completed: obj.completed
+      };
+      io.emit('studentComplete' , info);
     });
   });
 });
