@@ -39,13 +39,14 @@ io.on('connection', function(socket){
   socket.on('studentID', function(studentID){
     Student.findOne({id:studentID}, function(err, obj){
       if(err) return console.error(err);
-      var student = {
-        id: obj.id,
-        name: obj.name,
-        grade: obj.grade,
-        asset: obj.asset,
-        openCampus: obj.openCampus
-      };
+      if(!obj) return console.log('Error: student id not found');
+        var student = {
+          id: obj.id,
+          name: obj.name,
+          grade: obj.grade,
+          asset: obj.asset,
+          openCampus: obj.openCampus
+        };
       io.emit('student', student);
       console.log('Received request for SID# '+ studentID);
     });
@@ -57,7 +58,6 @@ io.on('connection', function(socket){
       if(err) return console.error(err);
 
       // Display all user data
-
       console.log(studentObj);
     });
 
