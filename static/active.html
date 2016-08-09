@@ -58,10 +58,10 @@
       socket.on('connect', function() {
 
         function updateList() {
-          socket.emit('activeList', {id: socket.io.engine.id});
+          socket.emit('client-active-list', {id: socket.io.engine.id});
         }
 
-        socket.on('active', function(objs) {
+        socket.on('server-active-list', function(objs) {
           var table = $('#activeList tbody').html('');
 
           for(var i in objs) {
@@ -83,7 +83,7 @@
 
           $('input.checkboxClaimed').change(function() {
             var checked = $(this).prop('checked');
-            socket.emit('studentClaimed', {id: $(this).data('sid'), claimed: checked});
+            socket.emit('client-student-claimed', {id: $(this).data('sid'), claimed: checked});
             $('button#complete-button-' + $(this).data('sid')).attr('disabled', !checked);
           });
 
@@ -93,15 +93,15 @@
           });
         });
 
-        socket.on('studentCompleted', function(obj) {
+        socket.on('server-student-completed', function(obj) {
           $('#activeRow-' + obj.id).remove();
         });
 
-        socket.on('info', function(obj){
+        socket.on('server-list-info', function(obj){
           updateList();
         });
 
-        socket.on('claimed', function(obj) {
+        socket.on('server-student-claimed', function(obj) {
           var checkbox = $('#claimed-checkbox-' + obj.id);
           checkbox.prop('checked', obj.claimed);
           $('button#complete-button-' + checkbox.data('sid')).attr('disabled', !checkbox.prop('checked'));
