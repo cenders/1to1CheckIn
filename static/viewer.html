@@ -84,7 +84,7 @@
 
         function updateList() {
           pagination.id = socket.io.engine.id;
-          socket.emit('studentList', pagination);
+          socket.emit('client-student-list', pagination);
         }
 
         function previousPage() {
@@ -112,14 +112,7 @@
           updateList();
         }
 
-        //Student ID form handler
-        $('#idForm').submit(function(){
-          socket.emit('studentID', $('#StudentIDForm').val());
-          return false;
-        });
-
-
-        socket.on('list', function(obj) {
+        socket.on('server-student-list', function(obj) {
           max = obj.count;
 
           var table = $('#studentList tbody').html('');
@@ -149,12 +142,12 @@
           }
 
           $('button.button-complete').click(function() {
-            socket.emit('studentComplete', {id: $(this).data('sid')});
+            socket.emit('client-student-complete', {id: $(this).data('sid')});
             $(this).remove();
           });
         });
 
-        socket.on('studentCompleted', function() {
+        socket.on('client-student-completed', function() {
           updateList();
         });
 

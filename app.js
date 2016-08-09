@@ -59,7 +59,7 @@ io.on('connection', function(socket){
   });
 
   //Requesting student list
-  socket.on('studentList', function(listObj) {
+  socket.on('client-student-list', function(listObj) {
     var q = {completed: {$ne: listObj.showIncomplete}};
 
     Student.find(q).count().exec(function(err, count) {
@@ -79,7 +79,7 @@ io.on('connection', function(socket){
             completed: objs[i].completed
           }
         }
-        io.to('/#' + listObj.id).emit('list', {count: count, students: students});
+        io.to('/#' + listObj.id).emit('server-student-list', {count: count, students: students});
       });
     });
   });
@@ -151,7 +151,7 @@ io.on('connection', function(socket){
     });
   });
 
-  socket.on('studentComplete', function(completeObj) {
+  socket.on('client-student-complete', function(completeObj) {
     Student.findOneAndUpdate({id: completeObj.id}, {completed: true}).exec(function(err, student) {
       if(err) return console.error(err);
       if(!student) return console.error('Student "' + completeObj.id + '" not found, not updated');
@@ -167,7 +167,7 @@ io.on('connection', function(socket){
         claimed: completeObj.claimed,
         completed: completeObj.completed
       };
-      io.emit('studentCompleted' , info);
+      io.emit('client-student-completed' , info);
     });
   });
 });
