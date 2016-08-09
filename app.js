@@ -31,6 +31,7 @@ var schema = new mongoose.Schema({
   grade: Number,
   asset: Number,
   openCampus: Boolean,
+  claimed: {type: Boolean, default: false},
   completed: {type: Boolean, default: false},
   time: String
 },
@@ -96,9 +97,30 @@ io.on('connection', function(socket){
         grade: obj.grade,
         asset: obj.asset,
         openCampus: obj.openCampus,
+        claimed: obj.claimed,
         completed: obj.completed
       };
       io.emit('info' , info);
+    });
+  });
+
+  socket.on('studentClaimed', function(claimedObj) {
+    Student.findOneAndUpdate({id: claimedObj.id}, {claimed: true}).exec(function(err, student) {
+      if(err) return console.error(err);
+      if(!student) return console.error('Student "' + claimedObj.id + '" not found, not updated');
+
+      console.log('Student "' + claimedObj.id + '" claimed by helper');
+
+      var info = {
+        id: claimedObj.id,
+        name: claimedObj.name,
+        grade: claimedObj.grade,
+        asset: claimedObj.asset,
+        openCampus: claimedObj.openCampus,
+        claimed: claimedObj.claimed,
+        completed: claimedObj.completed
+      };
+      io.emit('studentClaimed' , info);
     });
   });
 
@@ -110,19 +132,20 @@ io.on('connection', function(socket){
       console.log('Student "' + completeObj.id + '" completed');
 
       var info = {
-        id: obj.id,
-        name: obj.name,
-        grade: obj.grade,
-        asset: obj.asset,
-        openCampus: obj.openCampus,
-        completed: obj.completed
+        id: completeObj.id,
+        name: completeObj.name,
+        grade: completeObj.grade,
+        asset: completeObj.asset,
+        openCampus: completeObj.openCampus,
+        claimed: completeObj.claimed,
+        completed: completeObj.completed
       };
-      io.emit('studentComplete' , info);
+      io.emit('studentCompleted' , info);
     });
   });
 });
 
 // Start server on
 http.listen(1337, function(){
-  console.log('listening on *:1337');
+  console.log('listening on port 1337');
 });
