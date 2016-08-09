@@ -106,35 +106,37 @@
       $(document).ready(function() {
         //Student ID form handler
         var socket = io();
-        $('#idForm').submit(function(){
-          socket.emit('studentID', $('#StudentIDForm').val());
-          return false;
-        });
+        socket.on('connect', function() {
+          $('#idForm').submit(function() {
+            socket.emit('studentID', {studentID: $('#StudentIDForm').val(), id: socket.io.engine.id});
+            return false;
+          });
 
-        //Inserts data into form
-        socket.on('student', function(obj){
-          $('#idForm').hide();
-          $('#infoForm').show();
-          $('#idLabel').prop('value', obj.id);
-          $('#nameLabel').prop('value', obj.name);
-          $('#gradeLabel').prop('value', obj.grade);
-          $('#assetLabel').prop('value', obj.asset);
+          //Inserts data into form
+          socket.on('student', function(obj){
+            $('#idForm').hide();
+            $('#infoForm').show();
+            $('#idLabel').prop('value', obj.id);
+            $('#nameLabel').prop('value', obj.name);
+            $('#gradeLabel').prop('value', obj.grade);
+            $('#assetLabel').prop('value', obj.asset);
 
-          if(obj.openCampus) {
-            $('#openYes').prop('checked', true);
-            $('#openNo').prop('checked', false);
-          }
-        });
+            if(obj.openCampus) {
+              $('#openYes').prop('checked', true);
+              $('#openNo').prop('checked', false);
+            }
+          });
 
-        //Submits data to viewer and updates Open Campus record
-        $('#infoForm').submit(function(){
-          var obj = {
-            id: $('#idLabel').val(),
-            name: $('#nameLabel').val(),
-            grade: $('#gradeLabel').val(),
-            openCampus: $('input[name=openRad]:checked').val(),
-          };
-          socket.emit('studentInfo', obj);
+          //Submits data to viewer and updates Open Campus record
+          $('#infoForm').submit(function(){
+            var obj = {
+              id: $('#idLabel').val(),
+              name: $('#nameLabel').val(),
+              grade: $('#gradeLabel').val(),
+              openCampus: $('input[name=openRad]:checked').val(),
+            };
+            socket.emit('studentInfo', obj);
+          });
         });
       });
     </script>

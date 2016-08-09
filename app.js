@@ -42,8 +42,8 @@ var Student = mongoose.model('Student', schema);
 
 io.on('connection', function(socket){
   // Student submits initial student ID form
-  socket.on('studentID', function(studentID){
-    Student.findOne({id:studentID}, function(err, obj){
+  socket.on('studentID', function(data) {
+    Student.findOne({id:data.studentID}, function(err, obj){
       if(err) return console.error(err);
       if(!obj) return console.log('Error: student id not found');
         var student = {
@@ -53,15 +53,13 @@ io.on('connection', function(socket){
           asset: obj.asset,
           openCampus: obj.openCampus
         };
-      io.emit('student', student);
-      console.log('Received request for SID# '+ studentID);
+      io.to('/#' + data.id).emit('student', student);
+      console.log('Received request for SID# '+ data.studentID);
     });
   });
 
   //Requesting student list
   socket.on('studentList', function(listObj) {
-    console.log(listObj);
-
     var q = {completed: {$ne: listObj.showIncomplete}};
 
     Student.find(q).count().exec(function(err, count) {
