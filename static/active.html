@@ -39,8 +39,8 @@
             <th>Name</th>
             <th>Grade</th>
             <th>Laptop</th>
-            <th>Searching</th>
-            <th>Found </th>
+            <th>Claimed</th>
+            <th>Completed</th>
           </tr>
         </thead>
         <tbody>
@@ -72,11 +72,12 @@
             '</td>' +
           '</tr>';
 
-          table.prepend(row);
+          table.append(row);
 
           $('button.buttonActiveRemove').click(function() {
-            $('#activeRow-' + $(this).data('sid')).remove();
+            var date = new Date();
             socket.emit('studentComplete', {id: $(this).data('sid'), time: date});
+            $('#activeRow-' + $(this).data('sid')).remove();
           });
         }
       });
