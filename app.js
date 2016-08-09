@@ -42,7 +42,7 @@ var Student = mongoose.model('Student', schema);
 
 io.on('connection', function(socket){
   // Student submits initial student ID form
-  socket.on('studentID', function(data) {
+  socket.on('client-student', function(data) {
     Student.findOne({id:data.studentID}, function(err, obj){
       if(err) return console.error(err);
       if(!obj) return console.log('Error: student id not found');
@@ -53,8 +53,8 @@ io.on('connection', function(socket){
           asset: obj.asset,
           openCampus: obj.openCampus
         };
-      io.to('/#' + data.id).emit('student', student);
-      console.log('Received request for SID# '+ data.studentID);
+      io.to('/#' + data.id).emit('server-student', student);
+      console.log('Received request for Student "'+ data.studentID + '"');
     });
   });
 
@@ -109,21 +109,23 @@ io.on('connection', function(socket){
   });
 
   // Student submits second form with Open Campus option
-  socket.on('studentInfo', function(studentObj){
-    Student.findOneAndUpdate({id: studentObj.id}, {openCampus: studentObj.openCampus, time: new Date(), active: true}, function(err, obj){
+  socket.on('client-student-active', function(studentObj){
+    var q = {id: studentObj.id};
+    var update = {openCampus: studentObj.openCampus, time: new Date(), active: true};
+
+    Student.findOneAndUpdate(q, update, function(err, student){
       if(err) return console.error(err);
 
-      // Display all user data
-      console.log('Student:', obj);
+      console.log('Student "' + student.id + '" claimed by helper');
 
       var info = {
-        id: obj.id,
-        name: obj.name,
-        grade: obj.grade,
-        asset: obj.asset,
-        openCampus: obj.openCampus,
-        claimed: obj.claimed,
-        completed: obj.completed
+        id: student.id,
+        name: student.name,
+        grade: student.grade,
+        asset: student.asset,
+        openCampus: student.openCampus,
+        claimed: student.claimed,
+        completed: student.completed
       };
       io.emit('info', info);
     });
