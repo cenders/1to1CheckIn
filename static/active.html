@@ -58,13 +58,12 @@
       socket.on('connect', function() {
 
         function updateList() {
-          var table = $('#activeList tbody').html('');
           socket.emit('activeList', {id: socket.io.engine.id});
         }
 
         socket.on('active', function(objs) {
           console.log('active', objs);
-          var table = $('#activeList tbody').html();
+          var table = $('#activeList tbody').html('');
 
           for(var i in objs) {
             var checked = '';
