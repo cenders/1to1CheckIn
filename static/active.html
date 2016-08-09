@@ -66,13 +66,13 @@
           var table = $('#activeList tbody').html('');
 
           for(var i in objs) {
-            var checked = '';
+            var checked = objs[i].claimed ? 'checked':'';
             var row = '<tr id="activeRow-' + objs[i].id + '">' +
               '<td class="col-xs-1">' + objs[i].id + '</td>' +
               '<td class="col-xs-5">' + objs[i].name + '</td>' +
               '<td class="col-xs-1">' + objs[i].grade + '</td>' +
               '<td class="col-xs-2">' + objs[i].asset + '</td>' +
-              '<td class="col-xs-2"><input data-sid="' + objs[i].id + '" class="checkboxClaimed" type="checkbox" ' + checked + '></td>' +
+              '<td class="col-xs-2"><input id="claimed-checkbox-' + objs[i].id +'" data-sid="' + objs[i].id + '" class="checkboxClaimed" type="checkbox" ' + checked + '></td>' +
               '<td class="col-xs-1">' +
                 '<button data-sid="' + objs[i].id + '" class="btn btn-primary btn-xs text-center buttonActiveRemove pull-right">X</button>' +
               '</td>' +
@@ -83,10 +83,7 @@
 
           $('input.checkboxClaimed').change(function() {
             var checked = $(this).prop('checked');
-
-            if(checked) {
-              socket.emit('studentClaimed', {id: $(this).data('sid')});
-            }
+            socket.emit('studentClaimed', {id: $(this).data('sid'), claimed: checked});
           });
 
           $('button.buttonActiveRemove').click(function() {
@@ -101,6 +98,10 @@
 
         socket.on('info', function(obj){
           updateList();
+        });
+
+        socket.on('claimed', function(obj) {
+          $('#claimed-checkbox-' + obj.id).prop('checked', obj.claimed);
         });
 
         updateList();
