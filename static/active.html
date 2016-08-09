@@ -64,7 +64,7 @@
 
         socket.on('active', function(objs) {
           console.log('active', objs);
-          var table = $('#activeList tbody');
+          var table = $('#activeList tbody').html();
 
           for(var i in objs) {
             var checked = '';
@@ -101,26 +101,7 @@
         });
 
         socket.on('info', function(obj){
-          var table = $('#activeList tbody');
-          if(!obj.completed) {
-            var checked = '';
-            var row = '<tr id="activeRow-' + obj.id + '">' +
-              '<td class="col-xs-1">' + obj.id + '</td>' +
-              '<td class="col-xs-5">' + obj.name + '</td>' +
-              '<td class="col-xs-1">' + obj.grade + '</td>' +
-              '<td class="col-xs-2">' + obj.asset + '</td>' +
-              '<td class="col-xs-2"><input type="checkbox" ' + checked + '></td>' +
-              '<td class="col-xs-1">' +
-                '<button data-sid="' + obj.id + '" class="btn btn-primary btn-xs text-center buttonActiveRemove pull-right">X</button>' +
-              '</td>' +
-            '</tr>';
-            table.append(row);
-            $('button.buttonActiveRemove').click(function() {
-              var date = new Date();
-              socket.emit('studentComplete', {id: $(this).data('sid'), time: date});
-              $('#activeRow-' + $(this).data('sid')).remove();
-            });
-          }
+          updateList();
         });
 
         updateList();
