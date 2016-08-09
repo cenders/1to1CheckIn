@@ -13,7 +13,7 @@
     <nav class="navbar navbar-inverse">
       <div class="container-fluid">
         <div class="navbar-header">
-          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-2">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-collapse-2">
             <span class="sr-only">Toggle navigation</span>
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
@@ -55,31 +55,75 @@
     $(document).ready(function() {
       var socket = io();
 
-      socket.on('info', function(obj){
-        var table = $('#activeList tbody');
+      socket.on('connect', function() {
 
-        if(!obj.completed) {
+        function updateList() {
+          var table = $('#activeList tbody').html('');
+          socket.emit('activeList', {id: socket.io.engine.id});
+        }
 
-          var checked = 'checked';
-          var row = '<tr id="activeRow-' + obj.id + '">' +
-            '<td class="col-xs-1">' + obj.id + '</td>' +
-            '<td class="col-xs-5">' + obj.name + '</td>' +
-            '<td class="col-xs-1">' + obj.grade + '</td>' +
-            '<td class="col-xs-2">' + obj.asset + '</td>' +
-            '<td class="col-xs-2"><input type="checkbox" ' + checked + '></td>' +
-            '<td class="col-xs-1">' +
-              '<button data-sid="' + obj.id + '" class="btn btn-primary btn-xs text-center buttonActiveRemove pull-right">X</button>' +
-            '</td>' +
-          '</tr>';
+        socket.on('active', function(objs) {
+          console.log('active', objs);
+          var table = $('#activeList tbody');
 
-          table.append(row);
+          for(var i in objs) {
+            var checked = '';
+            var row = '<tr id="activeRow-' + objs[i].id + '">' +
+              '<td class="col-xs-1">' + objs[i].id + '</td>' +
+              '<td class="col-xs-5">' + objs[i].name + '</td>' +
+              '<td class="col-xs-1">' + objs[i].grade + '</td>' +
+              '<td class="col-xs-2">' + objs[i].asset + '</td>' +
+              '<td class="col-xs-2"><input data-sid="' + objs[i].id + '" class="checkboxClaimed" type="checkbox" ' + checked + '></td>' +
+              '<td class="col-xs-1">' +
+                '<button data-sid="' + objs[i].id + '" class="btn btn-primary btn-xs text-center buttonActiveRemove pull-right">X</button>' +
+              '</td>' +
+            '</tr>';
+
+            table.append(row);
+          }
+
+          $('input.checkboxClaimed').change(function() {
+            var checked = $(this).prop('checked');
+
+            if(checked) {
+              socket.emit('studentClaimed', {id: $(this).data('sid')});
+            }
+          });
 
           $('button.buttonActiveRemove').click(function() {
-            var date = new Date();
-            socket.emit('studentComplete', {id: $(this).data('sid'), time: date});
+            socket.emit('studentComplete', {id: $(this).data('sid')});
             $('#activeRow-' + $(this).data('sid')).remove();
           });
-        }
+        });
+
+        socket.on('studentCompleted', function() {
+          updateList();
+        });
+
+        socket.on('info', function(obj){
+          var table = $('#activeList tbody');
+          if(!obj.completed) {
+            var checked = '';
+            var row = '<tr id="activeRow-' + obj.id + '">' +
+              '<td class="col-xs-1">' + obj.id + '</td>' +
+              '<td class="col-xs-5">' + obj.name + '</td>' +
+              '<td class="col-xs-1">' + obj.grade + '</td>' +
+              '<td class="col-xs-2">' + obj.asset + '</td>' +
+              '<td class="col-xs-2"><input type="checkbox" ' + checked + '></td>' +
+              '<td class="col-xs-1">' +
+                '<button data-sid="' + obj.id + '" class="btn btn-primary btn-xs text-center buttonActiveRemove pull-right">X</button>' +
+              '</td>' +
+            '</tr>';
+            table.append(row);
+            $('button.buttonActiveRemove').click(function() {
+              var date = new Date();
+              socket.emit('studentComplete', {id: $(this).data('sid'), time: date});
+              $('#activeRow-' + $(this).data('sid')).remove();
+            });
+          }
+        });
+
+        updateList();
       });
     });
     </script>

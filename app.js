@@ -31,6 +31,7 @@ var schema = new mongoose.Schema({
   grade: Number,
   asset: Number,
   openCampus: Boolean,
+  active: {type: Boolean, default: false},
   claimed: {type: Boolean, default: false},
   completed: {type: Boolean, default: false},
   time: String
@@ -59,6 +60,8 @@ io.on('connection', function(socket){
 
   //Requesting student list
   socket.on('studentList', function(listObj) {
+    console.log(listObj);
+
     var q = {completed: {$ne: listObj.showIncomplete}};
 
     Student.find(q).count().exec(function(err, count) {
@@ -78,14 +81,38 @@ io.on('connection', function(socket){
             completed: objs[i].completed
           }
         }
-        io.emit('list', {count: count, students: students});
+        io.to('/#' + listObj.id).emit('list', {count: count, students: students});
       });
+    });
+  });
+
+  socket.on('activeList', function(listObj) {
+    //var q = {'active': 'true'};
+
+    Student.find({'active': true, 'completed': {$ne: true }}).exec(function(err, objs) {
+      if(err) return console.error(err);
+
+      var students = [];
+
+      for(var i in objs) {
+        students[i] = {
+          id: objs[i].id,
+          name: objs[i].name,
+          grade: objs[i].grade,
+          asset: objs[i].asset,
+          active: objs[i].active,
+          claimed: objs[i].claimed,
+          completed: objs[i].completed
+        }
+      }
+
+      io.to('/#' + listObj.id).emit('active', students);
     });
   });
 
   // Student submits second form with Open Campus option
   socket.on('studentInfo', function(studentObj){
-    Student.findOneAndUpdate({id: studentObj.id}, {openCampus: studentObj.openCampus}, function(err, obj){
+    Student.findOneAndUpdate({id: studentObj.id}, {openCampus: studentObj.openCampus, time: new Date(), active: true}, function(err, obj){
       if(err) return console.error(err);
 
       // Display all user data
@@ -100,7 +127,7 @@ io.on('connection', function(socket){
         claimed: obj.claimed,
         completed: obj.completed
       };
-      io.emit('info' , info);
+      io.emit('info', info);
     });
   });
 
@@ -120,12 +147,13 @@ io.on('connection', function(socket){
         claimed: claimedObj.claimed,
         completed: claimedObj.completed
       };
-      io.emit('studentClaimed' , info);
+      io.emit('claimed', info);
     });
   });
 
   socket.on('studentComplete', function(completeObj) {
-    Student.findOneAndUpdate({id: completeObj.id}, {completed: true, time: completeObj.time}).exec(function(err, student) {
+    console.log('student Completed', completeObj);
+    Student.findOneAndUpdate({id: completeObj.id}, {completed: true}).exec(function(err, student) {
       if(err) return console.error(err);
       if(!student) return console.error('Student "' + completeObj.id + '" not found, not updated');
 

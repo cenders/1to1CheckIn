@@ -70,110 +70,113 @@
     <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
     <script>
-
-
     $(document).ready(function() {
       var socket = io();
 
-      var max = 0, numOnPage = 100, pagination = {
-        skip: 0,
-        limit: numOnPage,
-        sort: 'asset',
-        order: '',
-        showIncomplete: true
-      }
+      socket.on('connect', function() {
+        var max = 0, numOnPage = 100, pagination = {
+          skip: 0,
+          limit: numOnPage,
+          sort: 'asset',
+          order: '',
+          showIncomplete: true
+        }
 
-      function updateList() {
-        socket.emit('studentList', pagination);
-      }
+        function updateList() {
+          pagination.id = socket.io.engine.id;
+          console.log(pagination);
+          socket.emit('studentList', pagination);
+        }
 
-      function previousPage() {
-        if(pagination.skip >= numOnPage) {
-          pagination.skip -= numOnPage;
+        function previousPage() {
+          if(pagination.skip >= numOnPage) {
+            pagination.skip -= numOnPage;
+            updateList();
+          }
+        }
+
+        function nextPage() {
+          if(pagination.skip <= max - numOnPage) {
+            pagination.skip += numOnPage;
+            updateList();
+          }
+        }
+
+        function sort(event) {
+          var by = $(event.target).data('by');
+          if(pagination.sort == by) {
+            pagination.order = pagination.order != '-' ? '-' : '';
+          }
+          else {
+            pagination.sort = by;
+          }
           updateList();
         }
-      }
 
-      function nextPage() {
-        if(pagination.skip <= max - numOnPage) {
-          pagination.skip += numOnPage;
-          updateList();
-        }
-      }
-
-      function sort(event) {
-        var by = $(event.target).data('by');
-        if(pagination.sort == by) {
-          pagination.order = pagination.order != '-' ? '-' : '';
-        }
-        else {
-          pagination.sort = by;
-        }
-        updateList();
-      }
-
-      //Student ID form handler
-      $('#idForm').submit(function(){
-        socket.emit('studentID', $('#StudentIDForm').val());
-        return false;
-      });
-
-
-      socket.on('list', function(obj) {
-        max = obj.count;
-
-        var table = $('#studentList tbody').html('');
-
-        if(pagination.skip == 0)
-          $('#prevButton').attr('disabled', true);
-        else
-          $('#prevButton').attr('disabled', false);
-
-        if(pagination.skip + numOnPage >= max )
-          $('#nextButton').attr('disabled', true);
-        else
-          $('#nextButton').attr('disabled', false);
-
-        for(var i in obj.students) {
-          var checked = !obj.students[i].completed ? '<button data-sid="' + obj.students[i].id + '" class="btn btn-primary btn-xs text-center button-complete pull-right">X</button>':'';
-          var row = '<tr>' +
-            '<td class="col-xs-1">' + obj.students[i].id + '</td>' +
-            '<td class="col-xs-5">' + obj.students[i].name + '</td>' +
-            '<td class="col-xs-1">' + obj.students[i].grade + '</td>' +
-            '<td class="col-xs-2">' + obj.students[i].asset + '</td>' +
-            '<td class="col-xs-2">' + obj.students[i].openCampus + '</td>' +
-            '<td class="col-xs-1">' + checked + '</td>' +
-            '</tr>';
-
-          table.append(row);
-        }
-
-        $('button.button-complete').click(function() {
-          console.log('sending completed update');
-          var date = new Date();
-          socket.emit('studentComplete', {id: $(this).data('sid'), time: date});
-          $(this).remove();
+        //Student ID form handler
+        $('#idForm').submit(function(){
+          socket.emit('studentID', $('#StudentIDForm').val());
+          return false;
         });
-      });
 
-      socket.on('studentCompleted', function() {
+
+        socket.on('list', function(obj) {
+          console.log('called');
+          max = obj.count;
+
+          var table = $('#studentList tbody').html('');
+
+          if(pagination.skip == 0)
+            $('#prevButton').attr('disabled', true);
+          else
+            $('#prevButton').attr('disabled', false);
+
+          if(pagination.skip + numOnPage >= max )
+            $('#nextButton').attr('disabled', true);
+          else
+            $('#nextButton').attr('disabled', false);
+
+          for(var i in obj.students) {
+            var checked = !obj.students[i].completed ? '<button data-sid="' + obj.students[i].id + '" class="btn btn-primary btn-xs text-center button-complete pull-right">X</button>':'';
+            var row = '<tr>' +
+              '<td class="col-xs-1">' + obj.students[i].id + '</td>' +
+              '<td class="col-xs-5">' + obj.students[i].name + '</td>' +
+              '<td class="col-xs-1">' + obj.students[i].grade + '</td>' +
+              '<td class="col-xs-2">' + obj.students[i].asset + '</td>' +
+              '<td class="col-xs-2">' + obj.students[i].openCampus + '</td>' +
+              '<td class="col-xs-1">' + checked + '</td>' +
+              '</tr>';
+
+            table.append(row);
+          }
+
+          $('button.button-complete').click(function() {
+            console.log('sending completed update');
+            socket.emit('studentComplete', {id: $(this).data('sid')});
+            $(this).remove();
+          });
+        });
+
+        socket.on('studentCompleted', function() {
+          updateList();
+        });
+
+        $('#col-id').click(sort);
+        $('#col-name').click(sort);
+        $('#col-grade').click(sort);
+        $('#col-asset').click(sort);
+        $('#col-openCampus').click(sort);
+        $('#prevButton').click(previousPage);
+        $('#nextButton').click(nextPage);
+        $('#showCompletedButton').change(function() {
+          pagination.showIncomplete = !$(this).prop('checked');
+          pagination.skip = 0;
+          updateList();
+        });
+
         updateList();
-      });
 
-      $('#col-id').click(sort);
-      $('#col-name').click(sort);
-      $('#col-grade').click(sort);
-      $('#col-asset').click(sort);
-      $('#col-openCampus').click(sort);
-      $('#prevButton').click(previousPage);
-      $('#nextButton').click(nextPage);
-      $('#showCompletedButton').change(function() {
-        pagination.showIncomplete = !$(this).prop('checked');
-        pagination.skip = 0;
-        updateList();
       });
-
-      updateList();
     });
     </script>
   </body>
