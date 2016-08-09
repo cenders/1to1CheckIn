@@ -114,7 +114,7 @@ io.on('connection', function(socket){
       if(err) return console.error(err);
 
       // Display all user data
-      console.log(obj);
+      console.log('Student:', obj);
 
       var info = {
         id: obj.id,
@@ -150,7 +150,6 @@ io.on('connection', function(socket){
   });
 
   socket.on('studentComplete', function(completeObj) {
-    console.log('student Completed', completeObj);
     Student.findOneAndUpdate({id: completeObj.id}, {completed: true}).exec(function(err, student) {
       if(err) return console.error(err);
       if(!student) return console.error('Student "' + completeObj.id + '" not found, not updated');

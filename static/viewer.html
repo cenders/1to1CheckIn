@@ -56,10 +56,10 @@
             <tr class="clickable-headers">
               <th id="col-id" data-by="id">Student ID</th>
               <th id="col-name" data-by="name">Name</th>
-              <th id="col-grade" data-by="grade">Grade</th>
-              <th id="col-asset" data-by="asset">Laptop</th>
-              <th id="col-openCampus" data-by="openCampus">Open Campus</th>
-              <th></th>
+              <th class="text-center" id="col-grade" data-by="grade">Grade</th>
+              <th class="text-center" id="col-asset" data-by="asset">Laptop</th>
+              <th class="text-center" id="col-openCampus" data-by="openCampus">Open Campus</th>
+              <th class="text-right">Completed</th>
             </tr>
           </thead>
           <tbody>
@@ -84,7 +84,6 @@
 
         function updateList() {
           pagination.id = socket.io.engine.id;
-          console.log(pagination);
           socket.emit('studentList', pagination);
         }
 
@@ -139,18 +138,17 @@
             var checked = !obj.students[i].completed ? '<button data-sid="' + obj.students[i].id + '" class="btn btn-primary btn-xs text-center button-complete pull-right">X</button>':'';
             var row = '<tr>' +
               '<td class="col-xs-1">' + obj.students[i].id + '</td>' +
-              '<td class="col-xs-5">' + obj.students[i].name + '</td>' +
-              '<td class="col-xs-1">' + obj.students[i].grade + '</td>' +
-              '<td class="col-xs-2">' + obj.students[i].asset + '</td>' +
-              '<td class="col-xs-2">' + obj.students[i].openCampus + '</td>' +
-              '<td class="col-xs-1">' + checked + '</td>' +
+              '<td class="col-xs-4">' + obj.students[i].name + '</td>' +
+              '<td class="col-xs-1 text-center">' + obj.students[i].grade + '</td>' +
+              '<td class="col-xs-2 text-center">' + obj.students[i].asset + '</td>' +
+              '<td class="col-xs-2 text-center">' + obj.students[i].openCampus + '</td>' +
+              '<td class="col-xs-2">' + checked + '</td>' +
               '</tr>';
 
             table.append(row);
           }
 
           $('button.button-complete').click(function() {
-            console.log('sending completed update');
             socket.emit('studentComplete', {id: $(this).data('sid')});
             $(this).remove();
           });

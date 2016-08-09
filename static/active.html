@@ -62,11 +62,11 @@
         }
 
         socket.on('active', function(objs) {
-          console.log('active', objs);
           var table = $('#activeList tbody').html('');
 
           for(var i in objs) {
             var checked = objs[i].claimed ? 'checked':'';
+            var disabled = objs[i].claimed ? '':'disabled';
             var row = '<tr id="activeRow-' + objs[i].id + '">' +
               '<td class="col-xs-1">' + objs[i].id + '</td>' +
               '<td class="col-xs-5">' + objs[i].name + '</td>' +
@@ -74,7 +74,7 @@
               '<td class="col-xs-2">' + objs[i].asset + '</td>' +
               '<td class="col-xs-2"><input id="claimed-checkbox-' + objs[i].id +'" data-sid="' + objs[i].id + '" class="checkboxClaimed" type="checkbox" ' + checked + '></td>' +
               '<td class="col-xs-1">' +
-                '<button data-sid="' + objs[i].id + '" class="btn btn-primary btn-xs text-center buttonActiveRemove pull-right">X</button>' +
+                '<button id="complete-button-' + objs[i].id + '" data-sid="' + objs[i].id + '" class="btn btn-primary btn-xs text-center buttonActiveRemove pull-right" ' + disabled +'>X</button>' +
               '</td>' +
             '</tr>';
 
@@ -84,6 +84,7 @@
           $('input.checkboxClaimed').change(function() {
             var checked = $(this).prop('checked');
             socket.emit('studentClaimed', {id: $(this).data('sid'), claimed: checked});
+            $('button#complete-button-' + $(this).data('sid')).attr('disabled', !checked);
           });
 
           $('button.buttonActiveRemove').click(function() {
@@ -92,8 +93,8 @@
           });
         });
 
-        socket.on('studentCompleted', function() {
-          updateList();
+        socket.on('studentCompleted', function(obj) {
+          $('#activeRow-' + obj.id).remove();
         });
 
         socket.on('info', function(obj){
@@ -101,7 +102,10 @@
         });
 
         socket.on('claimed', function(obj) {
-          $('#claimed-checkbox-' + obj.id).prop('checked', obj.claimed);
+          var checkbox = $('#claimed-checkbox-' + obj.id);
+          checkbox.prop('checked', obj.claimed);
+          $('button#complete-button-' + checkbox.data('sid')).attr('disabled', !checkbox.prop('checked'));
+
         });
 
         updateList();
