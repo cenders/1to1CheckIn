@@ -45,20 +45,20 @@ var Student = mongoose.model('Student', schema);
 io.on('connection', function(socket){
   // Student submits initial student ID form
 
-  function logError(message, type) {
+  function logError(message, id, type) {
     console.log(message);
     var log = {
       message: message || 'An Error occured.',
       type: type || 'danger'
     }
 
-    io.emit('server-log', log);
+    io.to('/#' + id).emit('server-log', log);
   }
 
   socket.on('client-student', function(data) {
     Student.findOne({id:data.studentID}, function(err, obj){
       if(err) return console.error(err);
-      if(!obj) return logError('Error: student id not found.');
+      if(!obj) return logError('Error: student id not found.', data.id);
         var student = {
           id: obj.id,
           name: obj.name,
@@ -144,7 +144,7 @@ io.on('connection', function(socket){
   socket.on('client-student-claimed', function(claimedObj) {
     Student.findOneAndUpdate({id: claimedObj.id}, {claimed: claimedObj.claimed}).exec(function(err, student) {
       if(err) return console.error(err);
-      if(!student) return logError('Student "' + claimedObj.id + '" not found, not updated');
+      if(!student) return console.error(err);
 
       var info = {
         id: claimedObj.id,
@@ -169,7 +169,7 @@ io.on('connection', function(socket){
   socket.on('client-student-complete', function(completeObj) {
     Student.findOneAndUpdate({id: completeObj.id}, {completed: true}).exec(function(err, student) {
       if(err) return console.error(err);
-      if(!student) logError('Student "' + completeObj.id + '" not found, not updated');
+      if(!student) console.error('Student "' + completeObj.id + '" not found, not updated');
 
       console.log('Student "' + completeObj.id + '" completed');
 
