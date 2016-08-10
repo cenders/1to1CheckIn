@@ -1,0 +1,7 @@
+{
+  "host": "localhost",
+  "dbport": "27017",
+  "database": "distribution",
+  "collection": "dist",
+  "webport": "8080"
+}
