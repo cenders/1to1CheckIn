@@ -74,7 +74,7 @@
       var socket = io();
 
       socket.on('connect', function() {
-        var max = 0, numOnPage = 100, pagination = {
+        var max = 0, numOnPage = 20, pagination = {
           skip: 0,
           limit: numOnPage,
           sort: 'asset',
@@ -147,7 +147,7 @@
           });
         });
 
-        socket.on('client-student-completed', function() {
+        socket.on('server-student-completed', function() {
           updateList();
         });
 

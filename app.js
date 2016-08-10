@@ -116,8 +116,6 @@ io.on('connection', function(socket){
     Student.findOneAndUpdate(q, update, function(err, student){
       if(err) return console.error(err);
 
-      console.log('Student "' + student.id + '" claimed by helper');
-
       var info = {
         id: student.id,
         name: student.name,
@@ -128,15 +126,14 @@ io.on('connection', function(socket){
         completed: student.completed
       };
       io.emit('info', info);
+      console.log(Student.time)
     });
   });
 
-  socket.on('studentClaimed', function(claimedObj) {
+  socket.on('client-student-claimed', function(claimedObj) {
     Student.findOneAndUpdate({id: claimedObj.id}, {claimed: claimedObj.claimed}).exec(function(err, student) {
       if(err) return console.error(err);
       if(!student) return console.error('Student "' + claimedObj.id + '" not found, not updated');
-
-      console.log('Student "' + claimedObj.id + '" claimed by helper');
 
       var info = {
         id: claimedObj.id,
@@ -147,7 +144,14 @@ io.on('connection', function(socket){
         claimed: claimedObj.claimed,
         completed: claimedObj.completed
       };
-      io.emit('claimed', info);
+      io.emit('server-student-claimed', info);
+
+      if(info.claimed == true){
+        console.log('Student "' + claimedObj.id + '" claimed by helper')
+      };
+      if(info.claimed == false){
+        console.log('Student "' + claimedObj.id + '" unclaimed')
+      };
     });
   });
 
@@ -167,7 +171,7 @@ io.on('connection', function(socket){
         claimed: completeObj.claimed,
         completed: completeObj.completed
       };
-      io.emit('client-student-completed' , info);
+      io.emit('server-student-completed' , info);
     });
   });
 });
