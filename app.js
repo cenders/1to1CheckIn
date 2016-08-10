@@ -4,6 +4,8 @@ var http = require('http').Server(app);
 var io = require('socket.io')(http);
 var mongoose = require('mongoose');
 
+var config = require('./config.json');
+
 var path = require('path')
 app.use(express.static(path.join(__dirname, 'assets')));
 
@@ -23,7 +25,7 @@ db.once('open', function(){
   console.log('MongoDB connection open');
 });
 
-mongoose.connect('mongodb://localhost:27017/distribution/dist');
+mongoose.connect('mongodb://' + config.host + ':' + config.dbport + '/' + config.database + '/' + config.collection);
 
 var schema = new mongoose.Schema({
   id: Number,
@@ -186,6 +188,6 @@ io.on('connection', function(socket){
 });
 
 // Start server on
-http.listen(8080, function(){
-  console.log('listening on port 8080');
+http.listen(config.webport, function(){
+  console.log('listening on port' + config.webport);
 });
