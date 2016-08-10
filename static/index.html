@@ -37,7 +37,7 @@
         <form action="" id="idForm">
           <div class="form-group">
             <div class="input-group">
-                <input class="form-control input-lg" id="StudentIDForm" autocomplete="false" placeholder="Student ID #" type="text" autofocus>
+                <input class="form-control input-lg" id="StudentIDForm" autocomplete="off" placeholder="Student ID #" type="text" autofocus>
                 <span class="input-group-btn">
                   <button class="btn btn-primary btn-lg">Submit</button>
                 </span>
@@ -97,6 +97,8 @@
             </div>
           </fieldset>
         </form>
+
+        <div id="logs"></div>
       </div>
     </div>
     <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
@@ -110,6 +112,16 @@
           $('#idForm').submit(function() {
             socket.emit('client-student', {studentID: $('#StudentIDForm').val(), id: socket.io.engine.id});
             return false;
+          });
+
+          socket.on('server-log', function(log) {
+
+            var alert = '<div class="alert alert-dismissible alert-' + log.type +'" role="alert">' +
+              '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>' +
+              log.message +
+            '</div>';
+
+            $('#logs').prepend(alert);
           });
 
           //Inserts data into form
