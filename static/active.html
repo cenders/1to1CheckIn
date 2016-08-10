@@ -88,7 +88,7 @@
           });
 
           $('button.buttonActiveRemove').click(function() {
-            socket.emit('studentComplete', {id: $(this).data('sid')});
+            socket.emit('client-student-complete', {id: $(this).data('sid')});
             $('#activeRow-' + $(this).data('sid')).remove();
           });
         });

@@ -87,7 +87,7 @@ io.on('connection', function(socket){
   socket.on('client-active-list', function(listObj) {
     //var q = {'active': 'true'};
 
-    Student.find({'active': true, 'completed': {$ne: true }}).exec(function(err, objs) {
+    Student.find({'active': true, 'completed': {$ne: true }}).sort({time: 'asc'}).exec(function(err, objs) {
       if(err) return console.error(err);
 
       var students = [];
