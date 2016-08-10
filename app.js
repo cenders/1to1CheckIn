@@ -84,7 +84,7 @@ io.on('connection', function(socket){
     });
   });
 
-  socket.on('activeList', function(listObj) {
+  socket.on('client-active-list', function(listObj) {
     //var q = {'active': 'true'};
 
     Student.find({'active': true, 'completed': {$ne: true }}).exec(function(err, objs) {
@@ -104,7 +104,7 @@ io.on('connection', function(socket){
         }
       }
 
-      io.to('/#' + listObj.id).emit('active', students);
+      io.to('/#' + listObj.id).emit('server-active-list', students);
     });
   });
 
@@ -125,8 +125,8 @@ io.on('connection', function(socket){
         claimed: student.claimed,
         completed: student.completed
       };
-      io.emit('info', info);
-      console.log(Student.time)
+
+      io.emit('server-list-info', info);
     });
   });
 
