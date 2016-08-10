@@ -173,6 +173,6 @@ io.on('connection', function(socket){
 });
 
 // Start server on
-http.listen(1337, function(){
+http.listen(8080, function(){
   console.log('listening on port 1337');
 });
