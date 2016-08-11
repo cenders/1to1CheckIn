@@ -51,6 +51,19 @@
     <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
     <script>
+    var bell = new Audio('ring.mp3'), ringing = false, ringDelay = 3000;
+
+    function ring() {
+      if(!ringing) {
+        ringing = true;
+        bell.play();
+        setTimeout('resetRing()', ringDelay);
+      }
+    }
+
+    function resetRing() {
+      ringing = false;
+    }
 
     $(document).ready(function() {
       var socket = io();
@@ -97,8 +110,11 @@
           $('#activeRow-' + obj.id).remove();
         });
 
-        socket.on('server-list-info', function(obj){
-          updateList();
+        socket.on('server-list-info', function(obj) {
+          if(!obj.completed) {
+            ring();
+            updateList();
+          }
         });
 
         socket.on('server-student-claimed', function(obj) {

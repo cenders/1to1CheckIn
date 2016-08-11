@@ -189,5 +189,5 @@ io.on('connection', function(socket){
 
 // Start server on
 http.listen(config.webport, function(){
-  console.log('listening on port' + config.webport);
+  console.log('listening on port: ' + config.webport);
 });
