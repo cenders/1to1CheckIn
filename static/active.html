@@ -32,6 +32,13 @@
     </nav>
     <div class="container">
       <h5>Active</h5>
+      <div class="btn-group pull-right">
+        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <span id="sounds-button">Sound: </span> <span class="caret"></span>
+        </button>
+        <ul id="sounds-list" class="dropdown-menu">
+        </ul>
+      </div>
       <table id="activeList" class="table table-striped table-hover">
         <thead>
           <tr>
@@ -51,22 +58,58 @@
     <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
     <script>
-    var bell = new Audio('ring.mp3'), ringing = false, ringDelay = 3000;
-
-    function ring() {
-      if(!ringing) {
-        ringing = true;
-        bell.play();
-        setTimeout('resetRing()', ringDelay);
-      }
-    }
-
-    function resetRing() {
-      ringing = false;
-    }
 
     $(document).ready(function() {
       var socket = io();
+
+      var Sound = function(name, location, time) {
+        this.name = name;
+        this.audio = new Audio(location);
+        this.time = time;
+      }
+
+      var doorBell = new Sound('Door Bell', 'sounds/door-bell.mp3', 6000),
+        zelda = new Sound('Zelda','sounds/zelda.mp3', 5000);
+        mario = new Sound('Mario', 'sounds/mario.mp3', 4000),
+        sonic = new Sound('Sonic','sounds/sonic.mp3', 3000);
+
+      var soundManager = {
+        sounds: [doorBell, zelda, mario, sonic],
+        current: 0,
+        playing: false
+      };
+
+      function playSound() {
+        if(!soundManager.playing) {
+          soundManager.playing = true;
+          var s = soundManager.sounds[soundManager.current];
+          s.audio.play();
+          setTimeout(resetSound.bind(null, soundManager), s.time);
+        }
+      }
+
+      function resetSound(sm) {
+        sm.playing = false;
+      }
+
+      function changeSound() {
+        $('#sounds-button').html('Sound: ' + $(this).data('song-name'));
+        $('#sounds-list li').removeClass('active');
+        soundManager.current = $(this).data('song-id');
+        $(this).addClass('active');
+      }
+
+      var list = $('#sounds-list');
+
+      for(var i in soundManager.sounds) {
+        var link = $('<a></a>').html(soundManager.sounds[i].name);
+        var item = $('<li></li>').html(link).click(changeSound).data('song-id', i).data('song-name', soundManager.sounds[i].name);
+        if(i == 0) {
+          item.addClass('active');
+          $('#sounds-button').html('Sound: ' + soundManager.sounds[i].name);
+        }
+        list.append(item);
+      }
 
       socket.on('connect', function() {
 
@@ -112,7 +155,7 @@
 
         socket.on('server-list-info', function(obj) {
           if(!obj.completed) {
-            ring();
+            playSound();
             updateList();
           }
         });
