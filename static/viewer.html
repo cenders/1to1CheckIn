@@ -32,52 +32,64 @@
     </nav>
     <div class="container">
       <h5>Viewer</h5>
-        <div class="row">
-          <div class="col-lg-2">
-            <div class="btn-group">
-              <div class="btn prevButton" disabled>
-                Prev
-              </div>
-              <div class="btn nextButton">
-                Next
-              </div>
+      <form>
+        <div class="input-group">
+          <input id="input-search" class="form-control" placeholder="Search..." type="text" value="">
+          <span class="input-group-btn">
+            <button id="button-search" class="btn btn-default" type="button">Search</button>
+          </span>
+        </div>
+      </form>
+      <br>
+      <div class="row">
+        <div class="col-xs-5">
+          <div class="btn-group">
+            <div class="btn prevButton" disabled>
+              Prev
             </div>
-          </div>
-          <div class="col-lg-2 col-lg-offset-8">
-            <div class="checkbox pull-right">
-              <label>
-                <input id="showCompletedButton" type="checkbox"> Show completed
-              </label>
+            <div class="btn nextButton">
+              Next
             </div>
           </div>
         </div>
-        <table id="studentList" class="table table-striped table-hover ">
-          <thead>
-            <tr class="clickable-headers">
-              <th id="col-id" data-by="id">Student ID</th>
-              <th id="col-name" data-by="name">Name</th>
-              <th class="text-center" id="col-grade" data-by="grade">Grade</th>
-              <th class="text-center" id="col-asset" data-by="asset">Laptop</th>
-              <th class="text-center" id="col-openCampus" data-by="openCampus">Open Campus</th>
-              <th class="text-right">Completed</th>
-            </tr>
-          </thead>
-          <tbody>
-          </tbody>
-        </table>
-        <div class="row">
-          <div class="col-lg-2">
-            <div class="btn-group">
-              <div class="btn prevButton" disabled>
-                Prev
-              </div>
-              <div class="btn nextButton">
-                Next
-              </div>
+        <div class="col-xs-2">
+          <h6 class="text-center"><span id="count-number">0</span> <span id="count-word">Entries</span></h6>
+        </div>
+        <div class="col-xs-5">
+          <div class="checkbox pull-right">
+            <label>
+              <input id="showCompletedButton" type="checkbox"> Show completed
+            </label>
+          </div>
+        </div>
+      </div>
+      <table id="studentList" class="table table-striped table-hover ">
+        <thead>
+          <tr class="clickable-headers">
+            <th id="col-id" data-by="id">Student ID</th>
+            <th id="col-name" data-by="name">Name</th>
+            <th class="text-center" id="col-grade" data-by="grade">Grade</th>
+            <th class="text-center" id="col-asset" data-by="asset">Laptop</th>
+            <th class="text-center" id="col-openCampus" data-by="openCampus">Open Campus</th>
+            <th class="text-right">Completed</th>
+          </tr>
+        </thead>
+        <tbody>
+        </tbody>
+      </table>
+      <div class="row">
+        <div class="col-lg-2">
+          <div class="btn-group">
+            <div class="btn prevButton" disabled>
+              Prev
+            </div>
+            <div class="btn nextButton">
+              Next
             </div>
           </div>
-          <br>
-          <hr>
+        </div>
+        <br>
+      </div>
     </div>
     <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
     <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
@@ -92,6 +104,7 @@
           limit: numOnPage,
           sort: 'asset',
           order: '',
+          search: '',
           showIncomplete: true
         }
 
@@ -125,8 +138,16 @@
           updateList();
         }
 
+        function search() {
+          pagination.search = $('#input-search').val();
+          pagination.skip = 0;
+          updateList();
+        }
+
         socket.on('server-student-list', function(obj) {
           max = obj.count;
+          $('#count-number').html(max);
+          $('#count-word').html(max == 1 ? 'Entry':'Entries');
 
           var table = $('#studentList tbody').html('');
 
@@ -171,6 +192,13 @@
         $('#col-openCampus').click(sort);
         $('.prevButton').click(previousPage);
         $('.nextButton').click(nextPage);
+        $('#input-search').keypress(function (e) {
+          if (e.which == 13) {
+            search();
+            return false;    //<---- Add this line
+          }
+        });
+        $('#button-search').click(search);
         $('#showCompletedButton').change(function() {
           pagination.showIncomplete = !$(this).prop('checked');
           pagination.skip = 0;

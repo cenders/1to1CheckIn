@@ -39,6 +39,7 @@ var schema = new mongoose.Schema({
   time: String
 },
 {collection: 'dist'});
+schema.index({'$**': 'text'});
 
 var Student = mongoose.model('Student', schema);
 
@@ -74,6 +75,9 @@ io.on('connection', function(socket){
   //Requesting student list
   socket.on('client-student-list', function(listObj) {
     var q = {completed: {$ne: listObj.showIncomplete}};
+    if(listObj.search) {
+      q.$text = {$search: listObj.search};
+    }
 
     Student.find(q).count().exec(function(err, count) {
       if(err) return console.error(err);
