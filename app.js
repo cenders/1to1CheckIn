@@ -144,7 +144,7 @@ io.on('connection', function(socket){
   socket.on('client-student-claimed', function(claimedObj) {
     Student.findOneAndUpdate({id: claimedObj.id}, {claimed: claimedObj.claimed}).exec(function(err, student) {
       if(err) return console.error(err);
-      if(!student) return console.error(err);
+      if(!student) return console.error('Student "' + claimedObj.id + '" not found, not updated');
 
       var info = {
         id: claimedObj.id,
