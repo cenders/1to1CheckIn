@@ -37,6 +37,7 @@
           <span id="sounds-button">Sound: </span> <span class="caret"></span>
         </button>
         <ul id="sounds-list" class="dropdown-menu">
+          <li data-song-name="Muted" data-song-muted="true"><a href="#">Muted</a></li>
         </ul>
       </div>
       <table id="activeList" class="table table-striped table-hover">
@@ -76,11 +77,12 @@
       var soundManager = {
         sounds: [doorBell, zelda, mario, sonic],
         current: 0,
-        playing: false
+        playing: false,
+        muted: false
       };
 
       function playSound() {
-        if(!soundManager.playing) {
+        if(!soundManager.playing && !soundManager.muted) {
           soundManager.playing = true;
           var s = soundManager.sounds[soundManager.current];
           s.audio.play();
@@ -95,7 +97,15 @@
       function changeSound() {
         $('#sounds-button').html('Sound: ' + $(this).data('song-name'));
         $('#sounds-list li').removeClass('active');
-        soundManager.current = $(this).data('song-id');
+        if(!$(this).data('song-muted')) {
+          soundManager.current = $(this).data('song-id');
+          soundManager.muted = false;
+        }
+        else {
+          soundManager.current = -1;
+          soundManager.muted = true;
+        }
+
         $(this).addClass('active');
       }
 
@@ -103,13 +113,15 @@
 
       for(var i in soundManager.sounds) {
         var link = $('<a></a>').html(soundManager.sounds[i].name);
-        var item = $('<li></li>').html(link).click(changeSound).data('song-id', i).data('song-name', soundManager.sounds[i].name);
+        var item = $('<li></li>').html(link).data('song-id', i).data('song-name', soundManager.sounds[i].name);
         if(i == 0) {
           item.addClass('active');
           $('#sounds-button').html('Sound: ' + soundManager.sounds[i].name);
         }
-        list.append(item);
+        list.prepend(item);
       }
+
+      $('#sounds-list li').click(changeSound);
 
       socket.on('connect', function() {
 
