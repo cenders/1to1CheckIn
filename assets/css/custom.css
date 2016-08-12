@@ -12,3 +12,7 @@ tr.clickable-headers>th{
     width: 50%;
   }
 }
+
+body {
+  margin-bottom: 20px;
+}

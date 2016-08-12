@@ -44,10 +44,10 @@
       <div class="row">
         <div class="col-sm-5">
           <div class="full-btn-group btn-group">
-            <button class="btn prevButton" disabled>
+            <button class="btn btn-default prevButton" disabled>
               Prev
             </button>
-            <button class="btn nextButton">
+            <button class="btn btn-default nextButton">
               Next
             </button>
           </div>
@@ -91,15 +91,14 @@
       <div class="row">
         <div class="col-lg-2">
           <div class="btn-group">
-            <button class="btn prevButton" disabled>
+            <button class="btn btn-default prevButton" disabled>
               Prev
             </button>
-            <button class="btn nextButton">
+            <button class="btn btn-default nextButton">
               Next
             </button>
           </div>
         </div>
-        <br>
       </div>
     </div>
     <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
@@ -110,7 +109,8 @@
       var socket = io();
 
       socket.on('connect', function() {
-        var max = 0, pagination = {
+        var pagination = {
+          max: 0,
           skip: 0,
           limit: 20,
           sort: 'asset',
@@ -132,7 +132,7 @@
         }
 
         function nextPage() {
-          if(pagination.skip <= max - pagination.limit) {
+          if(pagination.skip <= pagination.max - pagination.limit) {
             pagination.skip += pagination.limit;
             updateList();
           }
@@ -155,6 +155,19 @@
           updateList();
         }
 
+        function inputSearch(event) {
+          if (event.which == 13) {
+            search();
+            return false;
+          }
+        }
+
+        function showCompeted() {
+          pagination.showIncomplete = !$(this).prop('checked');
+          pagination.skip = 0;
+          updateList();
+        }
+
         function limiter() {
           pagination.limit = $(this).data('limit');
           pagination.skip = 0;
@@ -162,10 +175,10 @@
         }
 
         socket.on('server-student-list', function(obj) {
-          max = obj.count;
+          pagination.max = obj.count;
           $('#entry-number').html(obj.students.length)
-          $('#count-number').html(max);
-          $('#count-word').html(max == 1 ? 'Entry':'Entries');
+          $('#count-number').html(pagination.max);
+          $('#count-word').html(pagination.max == 1 ? 'Entry':'Entries');
 
           var table = $('#studentList tbody').html('');
 
@@ -174,7 +187,7 @@
           else
             $('.prevButton').attr('disabled', false);
 
-          if(pagination.skip + pagination.limit >= max)
+          if(pagination.skip + pagination.limit >= pagination.max)
             $('.nextButton').attr('disabled', true);
           else
             $('.nextButton').attr('disabled', false);
@@ -210,19 +223,10 @@
         $('#col-openCampus').click(sort);
         $('.prevButton').click(previousPage);
         $('.nextButton').click(nextPage);
-        $('#input-search').keypress(function (e) {
-          if (e.which == 13) {
-            search();
-            return false;    //<---- Add this line
-          }
-        });
+        $('#input-search').keypress(inputSearch);
         $('#button-search').click(search);
         $('.limiter-option').click(limiter);
-        $('#showCompletedButton').change(function() {
-          pagination.showIncomplete = !$(this).prop('checked');
-          pagination.skip = 0;
-          updateList();
-        });
+        $('#showCompletedButton').change(showCompeted);
 
         updateList();
 
