@@ -3,11 +3,14 @@ var app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 var mongoose = require('mongoose');
+var favicon = require('serve-favicon');
 
 var config = require('./config.json');
 
 var path = require('path')
 app.use(express.static(path.join(__dirname, 'assets')));
+
+app.use(favicon(__dirname + '/static/favicon.ico'));
 
 app.get('/', function(req, res){
   res.sendFile(__dirname + '/static/index.html');
@@ -39,6 +42,7 @@ var schema = new mongoose.Schema({
   time: String
 },
 {collection: 'dist'});
+schema.index({'$**': 'text'});
 
 var Student = mongoose.model('Student', schema);
 
@@ -67,13 +71,16 @@ io.on('connection', function(socket){
           openCampus: obj.openCampus
         };
       io.to('/#' + data.id).emit('server-student', student);
-      console.log('Received request for Student "'+ data.studentID + '"');
+      console.log('Student "'+ obj.id + '" in grade "' + obj.grade + '" information requested');
     });
   });
 
   //Requesting student list
   socket.on('client-student-list', function(listObj) {
     var q = {completed: {$ne: listObj.showIncomplete}};
+    if(listObj.search) {
+      q.$text = {$search: listObj.search};
+    }
 
     Student.find(q).count().exec(function(err, count) {
       if(err) return console.error(err);
@@ -158,10 +165,10 @@ io.on('connection', function(socket){
       io.emit('server-student-claimed', info);
 
       if(info.claimed == true){
-        console.log('Student "' + claimedObj.id + '" claimed by helper')
+        console.log('Student "' + student.id + '" in grade "' + student.grade + '" claimed by helper')
       };
       if(info.claimed == false){
-        console.log('Student "' + claimedObj.id + '" unclaimed')
+        console.log('Student "' + student.id + '" in grade "' + student.grade + '" unclaimed')
       };
     });
   });
@@ -171,7 +178,7 @@ io.on('connection', function(socket){
       if(err) return console.error(err);
       if(!student) console.error('Student "' + completeObj.id + '" not found, not updated');
 
-      console.log('Student "' + completeObj.id + '" completed');
+      console.log('Student "' + completeObj.id + '" in grade "' + student.grade + '" completed');
 
       var info = {
         id: completeObj.id,
@@ -189,5 +196,5 @@ io.on('connection', function(socket){
 
 // Start server on
 http.listen(config.webport, function(){
-  console.log('listening on port' + config.webport);
+  console.log('listening on port: ' + config.webport);
 });
