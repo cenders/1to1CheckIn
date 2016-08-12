@@ -8,8 +8,9 @@
     "url": "https://github.com/cenders/1to1CheckIn"
   },
   "dependencies": {
-    "socket.io": "1.4.8",
+    "express": "4.14.0",
     "mongoose": "4.5.8",
-    "express": "4.14.0"
+    "serve-favicon": "2.3.0",
+    "socket.io": "1.4.8"
   }
 }
