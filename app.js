@@ -1,13 +1,16 @@
 var express = require('express');
+var request = require('request');
 var app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
-var mongoose = require('mongoose');
 var favicon = require('serve-favicon');
-
+var _ = require('lodash');
 var config = require('./config.json');
 
-var path = require('path')
+var path = require('path');
+
+var queue = [];
+var studentsInQueue = [];
 app.use(express.static(path.join(__dirname, 'assets')));
 
 app.use(favicon(__dirname + '/static/favicon.ico'));
@@ -22,31 +25,8 @@ app.get('/active', function(req, res){
   res.sendFile(__dirname + '/static/active.html');
 });
 
-var db = mongoose.connection;
-db.on('error', console.error);
-db.once('open', function(){
-  console.log('MongoDB connection open');
-});
 
-mongoose.connect('mongodb://' + config.host + ':' + config.dbport + '/' + config.database + '/' + config.collection);
-
-var schema = new mongoose.Schema({
-  id: Number,
-  name: String,
-  grade: Number,
-  asset: Number,
-  openCampus: Boolean,
-  active: {type: Boolean, default: false},
-  claimed: {type: Boolean, default: false},
-  completed: {type: Boolean, default: false},
-  time: String
-},
-{collection: 'dist'});
-schema.index({'$**': 'text'});
-
-var Student = mongoose.model('Student', schema);
-
-io.on('connection', function(socket){
+io.on('connection', function(socket) {
   // Student submits initial student ID form
 
   function logError(message, id, type) {
@@ -59,138 +39,91 @@ io.on('connection', function(socket){
     io.to('/#' + id).emit('server-log', log);
   }
 
-  socket.on('client-student', function(data) {
-    Student.findOne({id:data.studentID}, function(err, obj){
+  function requestGetJSON(url, cb) {
+    request.get(url, function(err, res, body) {
       if(err) return console.error(err);
-      if(!obj) return logError('Error: student id not found.', data.id);
-        var student = {
-          id: obj.id,
-          name: obj.name,
-          grade: obj.grade,
-          asset: obj.asset,
-          openCampus: obj.openCampus
-        };
+      if(!body) return cb('Error: No body');
+      if(!(parsedData = JSON.parse(body))) return cb('Could not pase JSON');
+      return cb(null, parsedData, res);
+    });
+  }
+
+  socket.on('client-student', function(data) {
+    requestGetJSON('http://localhost:3000/students/' + data.studentID, function(err, student) {
+      if(err) return console.log(err);
       io.to('/#' + data.id).emit('server-student', student);
-      console.log('Student "'+ obj.id + '" in grade "' + obj.grade + '" information requested');
+      console.log('Student "'+ student.id + '" in grade "' + student.grade + '" information requested');
     });
   });
 
   //Requesting student list
   socket.on('client-student-list', function(listObj) {
-    var q = {completed: {$ne: listObj.showIncomplete}};
-    if(listObj.search) {
-      q.$text = {$search: listObj.search};
-    }
 
-    Student.find(q).count().exec(function(err, count) {
-      if(err) return console.error(err);
+    var paginationURL = '?_limit=' + listObj.limit + "&_start=" +
+      listObj.skip + '&_sort=' + listObj.sort + '&_order=' + listObj.order;
 
-      Student.find(q).sort(listObj.order + listObj.sort).limit(listObj.limit).skip(listObj.skip).exec(function(err, objs) {
-        if(err) return console.error(err);
+    requestGetJSON('http://localhost:3000/students/' + paginationURL, function(err, students, res) {
+      if(err) return console.log(err);
+      var count = 0;
+      if(res.headers && res.headers['x-total-count'])
+        count = res.headers['x-total-count'];
 
-        var students = [];
-        for(var i in objs) {
-          students[i] = {
-            id: objs[i].id,
-            name: objs[i].name,
-            grade: objs[i].grade,
-            asset: objs[i].asset,
-            openCampus: objs[i].openCampus,
-            completed: objs[i].completed
-          }
-        }
-        io.to('/#' + listObj.id).emit('server-student-list', {count: count, students: students});
-      });
+      io.to('/#' + listObj.id).emit('server-student-list', {count: count, students: students});
     });
   });
 
   socket.on('client-active-list', function(listObj) {
-    Student.find({'active': true, 'completed': {$ne: true }}).sort({time: 'asc'}).exec(function(err, objs) {
-      if(err) return console.error(err);
-
-      var students = [];
-
-      for(var i in objs) {
-        students[i] = {
-          id: objs[i].id,
-          name: objs[i].name,
-          grade: objs[i].grade,
-          asset: objs[i].asset,
-          active: objs[i].active,
-          claimed: objs[i].claimed,
-          completed: objs[i].completed
-        }
-      }
-
-      io.to('/#' + listObj.id).emit('server-active-list', students);
-    });
+    io.to('/#' + listObj.id).emit('server-active-list', queue);
   });
 
   // Student submits second form with Open Campus option
   socket.on('client-student-active', function(studentObj){
-    var q = {id: studentObj.id};
-    var update = {openCampus: studentObj.openCampus, time: new Date(), active: true};
 
-    Student.findOneAndUpdate(q, update, function(err, student){
-      if(err) return console.error(err);
+    if(studentsInQueue.indexOf(studentObj.id) == -1) {
+      requestGetJSON('http://localhost:3000/students/' + studentObj.id, function(err, student) {
+        if(err) return console.log(err);
 
-      var info = {
-        id: student.id,
-        name: student.name,
-        grade: student.grade,
-        asset: student.asset,
-        openCampus: student.openCampus,
-        claimed: student.claimed,
-        completed: student.completed
-      };
+        student.claimed = false;
+        student.completed = false;
 
-      io.emit('server-list-info', info);
-    });
+        queue.push(student);
+        studentsInQueue.push(studentObj.id);
+
+        io.emit('server-list-info', student);
+        console.log('Student "' + studentObj.id + '" in grade "' + student.grade + '" pushed to active queue');
+      });
+    }
   });
 
   socket.on('client-student-claimed', function(claimedObj) {
-    Student.findOneAndUpdate({id: claimedObj.id}, {claimed: claimedObj.claimed}).exec(function(err, student) {
-      if(err) return console.error(err);
-      if(!student) return console.error('Student "' + claimedObj.id + '" not found, not updated');
+    var student = _.find(queue, _.matchesProperty('id', claimedObj.id));
 
-      var info = {
-        id: claimedObj.id,
-        name: claimedObj.name,
-        grade: claimedObj.grade,
-        asset: claimedObj.asset,
-        openCampus: claimedObj.openCampus,
-        claimed: claimedObj.claimed,
-        completed: claimedObj.completed
-      };
-      io.emit('server-student-claimed', info);
+    if(student) {
+      student.claimed = claimedObj.claimed;
 
-      if(info.claimed == true){
-        console.log('Student "' + student.id + '" in grade "' + student.grade + '" claimed by helper')
-      };
-      if(info.claimed == false){
-        console.log('Student "' + student.id + '" in grade "' + student.grade + '" unclaimed')
-      };
-    });
+      io.emit('server-student-claimed', student);
+      if(student.claimed) {
+        console.log('Student "' + student.id + '" in grade "' + student.grade + '" claimed by helper');
+      }
+
+      if(!student.claimed) {
+        console.log('Student "' + student.id + '" in grade "' + student.grade + '" unclaimed');
+      }
+    }
   });
 
   socket.on('client-student-complete', function(completeObj) {
-    Student.findOneAndUpdate({id: completeObj.id}, {completed: true}).exec(function(err, student) {
-      if(err) return console.error(err);
-      if(!student) console.error('Student "' + completeObj.id + '" not found, not updated');
 
+    var student = _.find(queue, _.matchesProperty('id', completeObj.id));
+
+    if(student) {
+      _.remove(queue, function(i) {
+        return i.id == completeObj.id
+      });
+
+      io.emit('server-student-completed' , student);
       console.log('Student "' + completeObj.id + '" in grade "' + student.grade + '" completed');
-
-      var info = {
-        id: completeObj.id,
-        name: completeObj.name,
-        grade: completeObj.grade,
-        asset: completeObj.asset,
-        openCampus: completeObj.openCampus,
-        claimed: completeObj.claimed,
-        completed: completeObj.completed
-      };
-      io.emit('server-student-completed' , info);
-    });
+    }
   });
 });
 

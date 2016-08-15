@@ -107,21 +107,12 @@
     <script>
       $(document).ready(function() {
         //Student ID form handler
+
         var socket = io();
-        socket.on('connect', function() {
+        socket.once('connect', function() {
           $('#idForm').submit(function() {
             socket.emit('client-student', {studentID: $('#StudentIDForm').val(), id: socket.io.engine.id});
             return false;
-          });
-
-          socket.on('server-log', function(log) {
-
-            var alert = '<div class="alert alert-dismissible alert-' + log.type +'" role="alert">' +
-              '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>' +
-              log.message +
-            '</div>';
-
-            $('#logs').prepend(alert);
           });
 
           //Inserts data into form

@@ -108,13 +108,13 @@
     $(document).ready(function() {
       var socket = io();
 
-      socket.on('connect', function() {
+      socket.once('connect', function() {
         var pagination = {
           max: 0,
           skip: 0,
           limit: 20,
           sort: 'asset',
-          order: '',
+          order: 'ASC',
           search: '',
           showIncomplete: true
         }
@@ -141,7 +141,7 @@
         function sort(event) {
           var by = $(event.target).data('by');
           if(pagination.sort == by) {
-            pagination.order = pagination.order != '-' ? '-' : '';
+            pagination.order = pagination.order != 'DESC' ? 'DESC' : 'ASC';
           }
           else {
             pagination.sort = by;
